@@ -1,0 +1,51 @@
+config:
+  target: "https://api.todoist.com"
+  phases:
+    - duration : 10
+      arrivalRate: 10
+      name: "Tasks suite"
+  defaults:
+    headers:
+      Authorization: Bearer {{ $processEnvironment.token }}
+      Content-Type: application/json
+  variables:
+    url_tasks:
+        "/rest/v1/tasks"
+    url_close:
+        "close"
+    url_reopen:
+        "reopen"
+    content:
+        "Simple content"
+    updatedContent:
+        "Updated content"
+scenarios:
+  - flow:
+    - get:
+        url: "{{url_tasks}}"
+    - think: 5
+    - post:
+        url: "{{ url_tasks }}"
+        json:
+          content : "{{ content }}"
+        capture:
+          json: "$.id"
+          as: "task_id"
+    - log: "Task id is: {{ task_id }}"
+    - think: 5
+    - get:
+        url: "{{url_tasks}}/{{task_id}}"
+    - think: 2
+    - post:
+        url: "{{url_tasks}}/{{task_id}}"
+        json:
+          content : "{{updatedContent}}"
+    - think: 2
+    - post:
+        url: "{{url_tasks}}/{{task_id}}/{{url_close}}"
+    - think: 2
+    - post:
+        url: "{{url_tasks}}/{{task_id}}/{{url_reopen}}"
+    - think: 2
+    - delete:
+        url: "{{url_tasks}}/{{task_id}}"
